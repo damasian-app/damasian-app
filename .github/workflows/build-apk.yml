@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - main
+    tags:
+      - 'v*'
   pull_request:
     branches:
       - main
@@ -14,36 +16,46 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       
       - name: Setup Java
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
           java-version: '11'
+          cache: gradle
       
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.41.5'
           channel: 'stable'
+          cache: true
       
       - name: Get dependencies
         run: flutter pub get
       
       - name: Build APK
-        run: flutter build apk --release
+        run: flutter build apk --release --no-shrink
       
-      - name: Upload APK to Release
-        uses: softprops/action-gh-release@v1
+      - name: Rename APK
+        run: |
+          mkdir -p release
+          cp build/app/outputs/flutter-app-release.apk release/damasian-v1.0.0-alpha.apk
+      
+      - name: Create Release
         if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v1
         with:
-          files: build/app/outputs/flutter-app-release.apk
+          files: release/damasian-v1.0.0-alpha.apk
+          draft: false
+          prerelease: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       
       - name: Upload APK as Artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
-          name: flutter-apk
-          path: build/app/outputs/flutter-app-release.apk
+          name: damasian-apk
+          path: release/damasian-v1.0.0-alpha.apk
+          retention-days: 30
