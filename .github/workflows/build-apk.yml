@@ -41,7 +41,7 @@ jobs:
       - name: Rename APK
         run: |
           mkdir -p release
-          cp build/app/outputs/flutter-app-release.apk release/damasian-v1.0.0-alpha.apk
+          cp build/app/outputs/apk/release/app-release.apk release/damasian-v1.0.0-alpha.apk
       
       - name: Create Release
         if: startsWith(github.ref, 'refs/tags/')
